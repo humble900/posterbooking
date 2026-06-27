@@ -1,0 +1,194 @@
+{
+  "functions": [
+    {
+      "name": "create_lead",
+      "description": "Creates a new sales lead in the PosterBooking CRM. Call this function when you have collected business information from the prospect during the call.",
+      "url": "{{BASE_URL}}/api/leads",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{API_KEY}}"
+      },
+      "parameters": {
+        "type": "object",
+        "required": ["business_name"],
+        "properties": {
+          "business_name": {
+            "type": "string",
+            "description": "The name of the prospect's business"
+          },
+          "contact_name": {
+            "type": "string",
+            "description": "The full name of the person you are speaking with"
+          },
+          "phone": {
+            "type": "string",
+            "description": "The prospect's phone number"
+          },
+          "email": {
+            "type": "string",
+            "description": "The prospect's email address"
+          },
+          "industry": {
+            "type": "string",
+            "description": "The industry the business operates in (e.g., Retail, Hospitality, Healthcare)"
+          },
+          "website": {
+            "type": "string",
+            "description": "The business website URL"
+          },
+          "number_of_locations": {
+            "type": "integer",
+            "description": "How many physical locations the business has"
+          },
+          "estimated_screens": {
+            "type": "integer",
+            "description": "Estimated number of digital screens the business would need"
+          },
+          "current_solution": {
+            "type": "string",
+            "description": "What the business currently uses for signage or promotions"
+          },
+          "interest_level": {
+            "type": "string",
+            "enum": ["Hot", "Warm", "Cold", "Unknown"],
+            "description": "How interested the prospect seems. Hot = very interested, Warm = somewhat interested, Cold = not very interested"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Any additional notes or context from the conversation"
+          }
+        }
+      }
+    },
+    {
+      "name": "send_email",
+      "description": "Sends an email to the prospect. Use 'signup' template to send a signup link, 'follow_up' for follow-up emails, and 'demo' for demo invitations.",
+      "url": "{{BASE_URL}}/api/email",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{API_KEY}}"
+      },
+      "parameters": {
+        "type": "object",
+        "required": ["email", "template"],
+        "properties": {
+          "lead_id": {
+            "type": "string",
+            "description": "The lead ID returned from create_lead. Associate this email with the lead."
+          },
+          "email": {
+            "type": "string",
+            "description": "The recipient's email address"
+          },
+          "template": {
+            "type": "string",
+            "enum": ["signup", "follow_up", "demo"],
+            "description": "Which email template to send. Use 'signup' for new prospects, 'follow_up' for reconnecting, 'demo' for demo scheduling."
+          }
+        }
+      }
+    },
+    {
+      "name": "send_sms",
+      "description": "Sends an SMS message to the prospect's phone number.",
+      "url": "{{BASE_URL}}/api/sms",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{API_KEY}}"
+      },
+      "parameters": {
+        "type": "object",
+        "required": ["phone", "message"],
+        "properties": {
+          "lead_id": {
+            "type": "string",
+            "description": "The lead ID to associate this SMS with"
+          },
+          "phone": {
+            "type": "string",
+            "description": "The recipient's phone number in E.164 format (e.g., +14155551234)"
+          },
+          "message": {
+            "type": "string",
+            "description": "The SMS message to send (max 1600 characters)"
+          }
+        }
+      }
+    },
+    {
+      "name": "save_call_summary",
+      "description": "Saves the call summary after the conversation ends. Include the transcript, summary, duration, and outcome.",
+      "url": "{{BASE_URL}}/api/call-summary",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{API_KEY}}"
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "lead_id": {
+            "type": "string",
+            "description": "The lead ID to associate this call with"
+          },
+          "retell_call_id": {
+            "type": "string",
+            "description": "The Retell call ID for this call"
+          },
+          "duration": {
+            "type": "integer",
+            "description": "Call duration in seconds"
+          },
+          "recording_url": {
+            "type": "string",
+            "description": "URL to the call recording"
+          },
+          "transcript": {
+            "type": "string",
+            "description": "Full transcript of the conversation"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Brief summary of the call outcome and key points discussed"
+          },
+          "call_status": {
+            "type": "string",
+            "enum": ["completed", "failed", "no_answer", "busy", "canceled", "voicemail"],
+            "description": "The outcome of the call"
+          },
+          "ended_reason": {
+            "type": "string",
+            "description": "Why the call ended"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_company",
+      "description": "Retrieves company information including website, signup URL, support email, and knowledge base URL. Use this to answer prospect questions about PosterBooking.",
+      "url": "{{BASE_URL}}/api/company/pb-default-001",
+      "method": "GET",
+      "headers": {
+        "Authorization": "Bearer {{API_KEY}}"
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "health_check",
+      "description": "Checks if the backend API is running and healthy.",
+      "url": "{{BASE_URL}}/health",
+      "method": "GET",
+      "headers": {},
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

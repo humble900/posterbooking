@@ -1,0 +1,182 @@
+// ============================================
+// Prisma Schema — PosterBooking AI Backend
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────
+
+enum InterestLevel {
+  Hot
+  Warm
+  Cold
+  Unknown
+}
+
+enum LeadStatus {
+  New
+  Contacted
+  Qualified
+  Demo_Scheduled
+  Closed_Won
+  Closed_Lost
+}
+
+enum CallStatus {
+  completed
+  failed
+  no_answer
+  busy
+  canceled
+  voicemail
+}
+
+enum EmailStatus {
+  sent
+  delivered
+  bounced
+  failed
+}
+
+enum SmsStatus {
+  sent
+  delivered
+  failed
+  simulated
+}
+
+// ── Companies ──────────────────────────────
+
+model Company {
+  id                String   @id @default(uuid())
+  name              String
+  website           String?
+  support_email     String?
+  sales_email       String?
+  knowledge_base_url String?
+  signup_url        String?
+  whatsapp_number   String?
+  active            Boolean  @default(true)
+  created_at        DateTime @default(now())
+
+  leads Lead[]
+
+  @@map("companies")
+}
+
+// ── Leads ──────────────────────────────────
+
+model Lead {
+  id                  String        @id @default(uuid())
+  company_id          String?
+  business_name       String
+  contact_name        String?
+  phone               String?
+  email               String?
+  industry            String?
+  website             String?
+  number_of_locations Int?
+  estimated_screens   Int?
+  current_solution    String?
+  interest_level      InterestLevel @default(Unknown)
+  status              LeadStatus    @default(New)
+  notes               String?
+  call_id             String?
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+
+  company  Company?  @relation(fields: [company_id], references: [id])
+  calls    Call[]
+  emails   Email[]
+  sms_logs SmsLog[]
+
+  @@index([company_id])
+  @@index([status])
+  @@index([interest_level])
+  @@index([created_at])
+  @@map("leads")
+}
+
+// ── Calls ──────────────────────────────────
+
+model Call {
+  id              String     @id @default(uuid())
+  lead_id         String?
+  retell_call_id  String?    @unique
+  duration        Int?
+  recording_url   String?
+  transcript      String?
+  summary         String?
+  call_status     CallStatus @default(completed)
+  ended_reason    String?
+  created_at      DateTime   @default(now())
+
+  lead Lead? @relation(fields: [lead_id], references: [id])
+
+  @@index([lead_id])
+  @@index([retell_call_id])
+  @@index([created_at])
+  @@map("calls")
+}
+
+// ── Emails ─────────────────────────────────
+
+model Email {
+  id                  String      @id @default(uuid())
+  lead_id             String?
+  email               String
+  template            String
+  provider            String      @default("resend")
+  provider_message_id String?
+  status              EmailStatus @default(sent)
+  created_at          DateTime    @default(now())
+
+  lead Lead? @relation(fields: [lead_id], references: [id])
+
+  @@index([lead_id])
+  @@index([created_at])
+  @@map("emails")
+}
+
+// ── SMS Logs ───────────────────────────────
+
+model SmsLog {
+  id         String    @id @default(uuid())
+  lead_id    String?
+  phone      String
+  provider   String    @default("twilio")
+  message    String
+  status     SmsStatus @default(sent)
+  created_at DateTime  @default(now())
+
+  lead Lead? @relation(fields: [lead_id], references: [id])
+
+  @@index([lead_id])
+  @@index([created_at])
+  @@map("sms_logs")
+}
+
+// ── Audit Logs ─────────────────────────────
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  endpoint    String
+  method      String
+  ip_address  String?
+  user_agent  String?
+  request_body String?
+  response_status Int?
+  created_at  DateTime @default(now())
+
+  @@index([action])
+  @@index([created_at])
+  @@map("audit_logs")
+}
