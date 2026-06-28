@@ -1,5 +1,5 @@
 # ==============================================================================
-# PosterBooking AI Backend — Railway Programmatic Deployment Script
+# PosterBooking AI Backend - Railway Programmatic Deployment Script
 # ==============================================================================
 # This script configures and deploys the PosterBooking backend programmatically
 # using the Railway CLI. It bypasses the Railway UI completely.
@@ -20,10 +20,10 @@ $Branch = "main"
 # Generate a secure API Key for Retell AI integration
 $ApiKey = [guid]::NewGuid().ToString()
 
-Write-Host "🚀 Starting programmatic Railway setup..." -ForegroundColor Cyan
+Write-Host "[START] Starting programmatic Railway setup..." -ForegroundColor Cyan
 
 # 1. Link to the existing Railway project and environment
-Write-Host "🔗 Linking to Railway project ($ProjectID)..." -ForegroundColor Yellow
+Write-Host "[LINK] Linking to Railway project ($ProjectID)..." -ForegroundColor Yellow
 railway link --project $ProjectID --environment $EnvironmentID
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Failed to link to Railway project. Please ensure you are logged in by running: railway login"
@@ -31,19 +31,19 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # 2. Add PostgreSQL database plugin/service (failsafe - will skip if already exists)
-Write-Host "🐘 Adding PostgreSQL database service..." -ForegroundColor Yellow
+Write-Host "[DB] Adding PostgreSQL database service..." -ForegroundColor Yellow
 railway add --database postgres
 # Note: If database already exists in the project, this is fine and will connect to it.
 
 # 3. Create the backend service linked to the GitHub repository
-Write-Host "📦 Creating and linking backend service ($ServiceName) to GitHub..." -ForegroundColor Yellow
+Write-Host "[SERVICE] Creating and linking backend service ($ServiceName) to GitHub..." -ForegroundColor Yellow
 railway add --service $ServiceName --repo $GitHubRepo --branch $Branch
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Service may already exist. Continuing to configuration..." -ForegroundColor Gray
 }
 
 # 4. Set environment variables programmatically on the backend service
-Write-Host "⚙️ Setting environment variables..." -ForegroundColor Yellow
+Write-Host "[CONFIG] Setting environment variables..." -ForegroundColor Yellow
 $Variables = @(
     "PORT=3000",
     "NODE_ENV=production",
@@ -63,8 +63,9 @@ foreach ($Var in $Variables) {
 
 # Link the DATABASE_URL dynamically from the PostgreSQL service
 Write-Host "   Linking DATABASE_URL to PostgreSQL..." -ForegroundColor Gray
-railway variables set --service $ServiceName "DATABASE_URL=`${{Postgres.DATABASE_URL}}"
+railway variables set --service $ServiceName 'DATABASE_URL=${{Postgres.DATABASE_URL}}'
 
-Write-Host "`n✅ Programmatic setup completed!" -ForegroundColor Green
-Write-Host "🔑 Retell AI API Key: $ApiKey" -ForegroundColor Green
-Write-Host "👉 To deploy the latest code manually, run: railway up" -ForegroundColor Cyan
+Write-Host " "
+Write-Host "[SUCCESS] Programmatic setup completed!" -ForegroundColor Green
+Write-Host "[API KEY] Retell AI API Key: $ApiKey" -ForegroundColor Green
+Write-Host "[DEPLOY] To deploy the latest code manually, run: railway up" -ForegroundColor Cyan
